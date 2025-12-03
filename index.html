@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST Tax Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>Tax Invoice Generator</h1>
+            <p class="subtitle">GST Compliant Invoice Generator</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Form Section -->
+            <section class="form-section">
+                <form id="invoiceForm">
+                    <!-- Seller Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">🏢</span>
+                            Seller Details
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="sellerName">Company Name</label>
+                                <input type="text" id="sellerName" placeholder="Your Company Name Pvt. Ltd.">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="sellerAddress">Address</label>
+                                <textarea id="sellerAddress" rows="2" placeholder="Full Address with City, State, PIN"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerGSTIN">GSTIN/UIN</label>
+                                <input type="text" id="sellerGSTIN" placeholder="22AAAAA0000A1Z5">
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerState">State Name & Code</label>
+                                <input type="text" id="sellerState" placeholder="Rajasthan, Code: 08">
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerCIN">CIN</label>
+                                <input type="text" id="sellerCIN" placeholder="U22100HR2010PTC040631">
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerEmail">Email</label>
+                                <input type="email" id="sellerEmail" placeholder="company@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerPAN">PAN</label>
+                                <input type="text" id="sellerPAN" placeholder="AAECB1304M">
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerPhone">Phone</label>
+                                <input type="text" id="sellerPhone" placeholder="+91 9876543210">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Invoice Details
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="invoiceNo">Invoice No.</label>
+                                <input type="text" id="invoiceNo" placeholder="INV/2025-26/001">
+                            </div>
+                            <div class="form-group">
+                                <label for="invoiceDate">Invoice Date</label>
+                                <input type="date" id="invoiceDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="paymentTerms">Payment Terms</label>
+                                <input type="text" id="paymentTerms" placeholder="7 Days">
+                            </div>
+                            <div class="form-group">
+                                <label for="supplierRef">Supplier's Ref.</label>
+                                <input type="text" id="supplierRef" placeholder="Reference Number">
+                            </div>
+                            <div class="form-group">
+                                <label for="buyerOrderNo">Buyer's Order No.</label>
+                                <input type="text" id="buyerOrderNo" placeholder="PO-001">
+                            </div>
+                            <div class="form-group">
+                                <label for="buyerOrderDate">Order Date</label>
+                                <input type="date" id="buyerOrderDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="despatchThrough">Despatched Through</label>
+                                <input type="text" id="despatchThrough" placeholder="BY ROAD">
+                            </div>
+                            <div class="form-group">
+                                <label for="destination">Destination</label>
+                                <input type="text" id="destination" placeholder="City Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleNo">Motor Vehicle No.</label>
+                                <input type="text" id="vehicleNo" placeholder="HR73B4842">
+                            </div>
+                            <div class="form-group">
+                                <label for="deliveryNote">Delivery Note</label>
+                                <input type="text" id="deliveryNote" placeholder="Delivery Note Number">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consignee Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📦</span>
+                            Consignee (Ship To)
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="consigneeName">Name</label>
+                                <input type="text" id="consigneeName" placeholder="Consignee Company Name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="consigneeAddress">Address</label>
+                                <textarea id="consigneeAddress" rows="2" placeholder="Full Address"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="consigneeGSTIN">GSTIN/UIN</label>
+                                <input type="text" id="consigneeGSTIN" placeholder="22AAAAA0000A1Z5">
+                            </div>
+                            <div class="form-group">
+                                <label for="consigneeState">State Name & Code</label>
+                                <input type="text" id="consigneeState" placeholder="Rajasthan, Code: 08">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buyer Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">🧾</span>
+                            Buyer (Bill To)
+                            <label class="same-as-consignee">
+                                <input type="checkbox" id="sameAsConsignee"> Same as Consignee
+                            </label>
+                        </h2>
+                        <div class="form-grid" id="buyerFields">
+                            <div class="form-group full-width">
+                                <label for="buyerName">Name</label>
+                                <input type="text" id="buyerName" placeholder="Buyer Company Name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="buyerAddress">Address</label>
+                                <textarea id="buyerAddress" rows="2" placeholder="Full Address"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="buyerGSTIN">GSTIN/UIN</label>
+                                <input type="text" id="buyerGSTIN" placeholder="22AAAAA0000A1Z5">
+                            </div>
+                            <div class="form-group">
+                                <label for="buyerState">State Name & Code</label>
+                                <input type="text" id="buyerState" placeholder="Rajasthan, Code: 08">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📝</span>
+                            Items
+                        </h2>
+                        <div class="items-table-container">
+                            <table class="items-table" id="itemsTable">
+                                <thead>
+                                    <tr>
+                                        <th class="col-sno">S.No</th>
+                                        <th class="col-desc">Description of Goods</th>
+                                        <th class="col-hsn">HSN/SAC</th>
+                                        <th class="col-qty">Quantity</th>
+                                        <th class="col-unit">Unit</th>
+                                        <th class="col-rate">Rate</th>
+                                        <th class="col-amount">Amount</th>
+                                        <th class="col-action"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsBody">
+                                    <!-- Items will be added here dynamically -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-add" id="addItemBtn">
+                                <span>+</span> Add Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tax Settings -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">💰</span>
+                            Tax Settings
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="cgstRate">CGST Rate (%)</label>
+                                <input type="number" id="cgstRate" value="6" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="sgstRate">SGST Rate (%)</label>
+                                <input type="number" id="sgstRate" value="6" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="igstRate">IGST Rate (%) <small>For Inter-state</small></label>
+                                <input type="number" id="igstRate" value="0" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="roundOff" checked> Apply Round Off
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">🏦</span>
+                            Bank Details
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="bankName">Bank Name</label>
+                                <input type="text" id="bankName" placeholder="Bank Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="accountNo">Account No.</label>
+                                <input type="text" id="accountNo" placeholder="1234567890">
+                            </div>
+                            <div class="form-group">
+                                <label for="ifscCode">IFSC Code</label>
+                                <input type="text" id="ifscCode" placeholder="SBIN0001234">
+                            </div>
+                            <div class="form-group">
+                                <label for="branchName">Branch</label>
+                                <input type="text" id="branchName" placeholder="Branch Name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📌</span>
+                            Additional Information
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="declaration">Declaration</label>
+                                <textarea id="declaration" rows="2" placeholder="We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct."></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="jurisdiction">Jurisdiction</label>
+                                <input type="text" id="jurisdiction" placeholder="Subject to [City] Jurisdiction">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-preview" id="previewBtn">
+                            👁️ Preview Invoice
+                        </button>
+                        <button type="button" class="btn btn-generate" id="generateBtn">
+                            📄 Generate PDF
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Preview Modal -->
+            <div class="modal-overlay" id="previewModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Invoice Preview</h2>
+                        <button class="modal-close" id="closeModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="invoicePreview" class="invoice-preview">
+                            <!-- Invoice preview will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-generate" id="downloadFromPreview">
+                            📄 Download PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <p>GST Tax Invoice Generator</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
