@@ -418,15 +418,45 @@ body {
 
 .modal-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--border-color);
+    gap: var(--spacing-lg);
 }
 
 .modal-header h2 {
     font-size: 1.25rem;
     font-weight: 600;
+}
+
+.preview-tabs {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-left: auto;
+    margin-right: var(--spacing-lg);
+}
+
+.preview-tab {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font-primary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.preview-tab:hover {
+    background: var(--bg-primary);
+}
+
+.preview-tab.active {
+    background: var(--bg-accent);
+    color: white;
+    border-color: var(--bg-accent);
 }
 
 .modal-close {
@@ -452,7 +482,23 @@ body {
     padding: var(--spacing-lg);
     border-top: 1px solid var(--border-color);
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+}
+
+.download-options {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.download-options .btn {
+    font-size: 0.85rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.download-options .btn-both {
+    background: var(--bg-accent);
 }
 
 /* Invoice Preview Styles */
@@ -460,7 +506,7 @@ body {
     background: white;
     padding: 20px;
     font-family: Arial, sans-serif;
-    font-size: 11px;
+    font-size: 13px;
     color: #000;
     min-width: 794px;
     border: 1px solid #000;
@@ -472,16 +518,19 @@ body {
 
 .invoice-header {
     text-align: center;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     border-bottom: 1px solid #000;
     padding-bottom: 5px;
     margin-bottom: 10px;
+    position: relative;
 }
 
 .invoice-header .original-text {
-    float: right;
-    font-size: 10px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 11px;
     font-weight: normal;
     font-style: italic;
 }
@@ -490,27 +539,46 @@ body {
     display: flex;
     border: 1px solid #000;
     margin-bottom: 0;
+    align-items: stretch;
 }
 
 .seller-section {
     flex: 1;
     padding: 8px;
     border-right: 1px solid #000;
+    box-sizing: border-box;
+}
+
+.seller-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.company-logo {
+    width: 55px;
+    height: auto;
+    object-fit: contain;
 }
 
 .seller-name {
     font-weight: bold;
-    font-size: 12px;
-    margin-bottom: 5px;
+    font-size: 22px;
+    margin-left: 5px;
 }
 
 .invoice-meta-section {
     width: 300px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 .invoice-meta-row {
     display: flex;
     border-bottom: 1px solid #000;
+    flex: 1;
 }
 
 .invoice-meta-row:last-child {
@@ -521,6 +589,9 @@ body {
     padding: 4px 6px;
     border-right: 1px solid #000;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .invoice-meta-cell:last-child {
@@ -528,12 +599,13 @@ body {
 }
 
 .invoice-meta-cell .label {
-    font-size: 9px;
+    font-size: 10px;
     color: #333;
 }
 
 .invoice-meta-cell .value {
     font-weight: 500;
+    font-size: 12px;
 }
 
 .consignee-buyer-section {
@@ -546,6 +618,9 @@ body {
 .buyer-box {
     flex: 1;
     padding: 8px;
+    min-height: 100px;
+    height: 100px;
+    overflow: hidden;
 }
 
 .consignee-box {
@@ -554,7 +629,7 @@ body {
 
 .box-title {
     font-weight: bold;
-    font-size: 10px;
+    font-size: 12px;
     margin-bottom: 5px;
 }
 
@@ -574,7 +649,7 @@ body {
     padding: 6px 4px;
     border-right: 1px solid #000;
     text-align: center;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .items-header > div:last-child {
@@ -584,15 +659,28 @@ body {
 .item-row {
     display: flex;
     border-bottom: 1px solid #ccc;
+    min-height: 24px;
 }
 
 .item-row > div {
-    padding: 6px 4px;
+    padding: 4px 4px;
     border-right: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .item-row > div:last-child {
     border-right: none;
+}
+
+.item-row .col-desc-prev {
+    justify-content: flex-start;
+}
+
+.item-row .col-rate-prev,
+.item-row .col-amount-prev {
+    justify-content: flex-end;
 }
 
 .col-sno-prev { width: 30px; text-align: center; }
@@ -651,7 +739,7 @@ body {
     display: flex;
     background: #f5f5f5;
     font-weight: bold;
-    font-size: 9px;
+    font-size: 11px;
     border-bottom: 1px solid #000;
 }
 
@@ -667,7 +755,7 @@ body {
 
 .tax-summary-row {
     display: flex;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .tax-summary-row > div {
@@ -690,11 +778,13 @@ body {
     flex: 1;
     padding: 8px;
     border-right: 1px solid #000;
+    min-height: 120px;
 }
 
 .footer-right {
     width: 250px;
     padding: 8px;
+    min-height: 120px;
 }
 
 .pan-section {
@@ -702,12 +792,12 @@ body {
 }
 
 .declaration-section {
-    font-size: 9px;
+    font-size: 11px;
     margin-bottom: 10px;
 }
 
 .bank-details {
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .bank-details strong {
@@ -724,7 +814,7 @@ body {
     border-top: 1px solid #000;
     padding-top: 5px;
     margin-top: 20px;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .jurisdiction {
@@ -732,7 +822,7 @@ body {
     padding: 8px;
     border: 1px solid #000;
     border-top: none;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
 }
 

@@ -21,10 +21,16 @@ const elements = {
     previewModal: document.getElementById('previewModal'),
     closeModal: document.getElementById('closeModal'),
     invoicePreview: document.getElementById('invoicePreview'),
-    downloadFromPreview: document.getElementById('downloadFromPreview'),
+    downloadOriginal: document.getElementById('downloadOriginal'),
+    downloadDuplicate: document.getElementById('downloadDuplicate'),
+    downloadBoth: document.getElementById('downloadBoth'),
     sameAsConsignee: document.getElementById('sameAsConsignee'),
-    buyerFields: document.getElementById('buyerFields')
+    buyerFields: document.getElementById('buyerFields'),
+    previewTabs: document.querySelectorAll('.preview-tab')
 };
+
+// Current preview copy type
+let currentCopyType = 'original';
 
 // ============================================
 // Initialize
@@ -44,9 +50,11 @@ function initializeApp() {
     // Event Listeners
     elements.addItemBtn.addEventListener('click', addItemRow);
     elements.previewBtn.addEventListener('click', showPreview);
-    elements.generateBtn.addEventListener('click', generatePDF);
+    elements.generateBtn.addEventListener('click', () => generatePDF('both'));
     elements.closeModal.addEventListener('click', closePreview);
-    elements.downloadFromPreview.addEventListener('click', generatePDF);
+    elements.downloadOriginal.addEventListener('click', () => generatePDF('original'));
+    elements.downloadDuplicate.addEventListener('click', () => generatePDF('duplicate'));
+    elements.downloadBoth.addEventListener('click', () => generatePDF('both'));
     elements.sameAsConsignee.addEventListener('change', handleSameAsConsignee);
     
     // Close modal on overlay click
@@ -61,6 +69,19 @@ function initializeApp() {
         if (e.key === 'Escape' && elements.previewModal.classList.contains('active')) {
             closePreview();
         }
+    });
+    
+    // Preview tab switching
+    elements.previewTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Update active tab
+            elements.previewTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Update copy type and re-render
+            currentCopyType = tab.dataset.copy;
+            renderInvoicePreview();
+        });
     });
 }
 
@@ -285,6 +306,47 @@ function numberToWords(num) {
 }
 
 // ============================================
+// Generate Item Rows (Always 10 rows)
+// ============================================
+function generateItemRows(validItems) {
+    const totalRows = 10;
+    let rows = '';
+    
+    // Add filled item rows
+    for (let i = 0; i < totalRows; i++) {
+        if (i < validItems.length) {
+            const item = validItems[i];
+            rows += `
+                <div class="item-row">
+                    <div class="col-sno-prev">${i + 1}</div>
+                    <div class="col-desc-prev">${escapeHtml(item.description) || ''}</div>
+                    <div class="col-hsn-prev">${escapeHtml(item.hsn) || ''}</div>
+                    <div class="col-qty-prev">${item.quantity || ''}</div>
+                    <div class="col-rate-prev">${item.rate ? formatCurrency(parseFloat(item.rate)) : ''}</div>
+                    <div class="col-per-prev">${escapeHtml(item.unit) || ''}</div>
+                    <div class="col-amount-prev">${item.amount ? formatCurrency(item.amount) : ''}</div>
+                </div>
+            `;
+        } else {
+            // Add empty row (no serial number)
+            rows += `
+                <div class="item-row">
+                    <div class="col-sno-prev">&nbsp;</div>
+                    <div class="col-desc-prev">&nbsp;</div>
+                    <div class="col-hsn-prev">&nbsp;</div>
+                    <div class="col-qty-prev">&nbsp;</div>
+                    <div class="col-rate-prev">&nbsp;</div>
+                    <div class="col-per-prev">&nbsp;</div>
+                    <div class="col-amount-prev">&nbsp;</div>
+                </div>
+            `;
+        }
+    }
+    
+    return rows;
+}
+
+// ============================================
 // Invoice Preview
 // ============================================
 function showPreview() {
@@ -296,6 +358,12 @@ function showPreview() {
 function closePreview() {
     elements.previewModal.classList.remove('active');
     document.body.style.overflow = '';
+    
+    // Reset to original tab
+    currentCopyType = 'original';
+    elements.previewTabs.forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.copy === 'original');
+    });
 }
 
 function getFormData() {
@@ -305,9 +373,7 @@ function getFormData() {
         sellerAddress: document.getElementById('sellerAddress').value,
         sellerGSTIN: document.getElementById('sellerGSTIN').value,
         sellerState: document.getElementById('sellerState').value,
-        sellerCIN: document.getElementById('sellerCIN').value,
         sellerEmail: document.getElementById('sellerEmail').value,
-        sellerPAN: document.getElementById('sellerPAN').value,
         sellerPhone: document.getElementById('sellerPhone').value,
         
         // Invoice Details
@@ -371,19 +437,26 @@ function renderInvoicePreview() {
         hsnSummary[hsn] += item.amount || 0;
     });
     
+    // Determine copy type text
+    const copyTypeText = currentCopyType === 'duplicate' 
+        ? 'DUPLICATE FOR TRANSPORTER' 
+        : 'ORIGINAL FOR RECIPIENT';
+    
     elements.invoicePreview.innerHTML = `
         <div class="invoice-header">
-            <span class="original-text">(ORIGINAL FOR RECIPIENT)</span>
+            <span class="original-text">(${copyTypeText})</span>
             TAX INVOICE
         </div>
         
         <div class="invoice-top-section">
             <div class="seller-section">
-                <div class="seller-name">${escapeHtml(data.sellerName) || 'Company Name'}</div>
+                <div class="seller-header">
+                    <img src="logo.png" alt="ACU Logo" class="company-logo">
+                    <div class="seller-name">${escapeHtml(data.sellerName) || 'Company Name'}</div>
+                </div>
                 <div>${escapeHtml(data.sellerAddress) || 'Company Address'}</div>
                 ${data.sellerGSTIN ? `<div>GSTIN/UIN: ${escapeHtml(data.sellerGSTIN)}</div>` : ''}
                 ${data.sellerState ? `<div>State Name: ${escapeHtml(data.sellerState)}</div>` : ''}
-                ${data.sellerCIN ? `<div>CIN: ${escapeHtml(data.sellerCIN)}</div>` : ''}
                 ${data.sellerEmail ? `<div>E-Mail: ${escapeHtml(data.sellerEmail)}</div>` : ''}
                 ${data.sellerPhone ? `<div>Phone: ${escapeHtml(data.sellerPhone)}</div>` : ''}
             </div>
@@ -478,17 +551,7 @@ function renderInvoicePreview() {
                 <div class="col-per-prev">Per</div>
                 <div class="col-amount-prev">Amount</div>
             </div>
-            ${validItems.map((item, index) => `
-                <div class="item-row">
-                    <div class="col-sno-prev">${index + 1}</div>
-                    <div class="col-desc-prev">${escapeHtml(item.description) || '-'}</div>
-                    <div class="col-hsn-prev">${escapeHtml(item.hsn) || '-'}</div>
-                    <div class="col-qty-prev">${item.quantity || '-'}</div>
-                    <div class="col-rate-prev">${item.rate ? formatCurrency(parseFloat(item.rate)) : '-'}</div>
-                    <div class="col-per-prev">${escapeHtml(item.unit) || '-'}</div>
-                    <div class="col-amount-prev">${item.amount ? formatCurrency(item.amount) : '-'}</div>
-                </div>
-            `).join('')}
+            ${generateItemRows(validItems)}
         </div>
         
         <div class="totals-section">
@@ -572,11 +635,6 @@ function renderInvoicePreview() {
         
         <div class="footer-section">
             <div class="footer-left">
-                ${data.sellerPAN ? `
-                <div class="pan-section">
-                    <strong>Company's PAN:</strong> ${escapeHtml(data.sellerPAN)}
-                </div>
-                ` : ''}
                 <div class="declaration-section">
                     <strong>Declaration:</strong><br>
                     ${escapeHtml(data.declaration)}
@@ -591,7 +649,8 @@ function renderInvoicePreview() {
                     <strong>Company's Bank Details</strong>
                     <div>Bank Name: ${escapeHtml(data.bankName)}</div>
                     ${data.accountNo ? `<div>A/c No.: ${escapeHtml(data.accountNo)}</div>` : ''}
-                    ${data.branchName || data.ifscCode ? `<div>Branch & IFS Code: ${escapeHtml(data.branchName)}${data.ifscCode ? ' & ' + escapeHtml(data.ifscCode) : ''}</div>` : ''}
+                    ${data.branchName ? `<div>Branch: ${escapeHtml(data.branchName)}</div>` : ''}
+                    ${data.ifscCode ? `<div>IFSC Code: ${escapeHtml(data.ifscCode)}</div>` : ''}
                 </div>
                 ` : ''}
                 <div class="signature-section">
@@ -612,11 +671,14 @@ function renderInvoicePreview() {
 // ============================================
 // PDF Generation
 // ============================================
-async function generatePDF() {
+async function generatePDF(downloadType = 'both') {
     // Show preview first if not already shown
     if (!elements.previewModal.classList.contains('active')) {
-        renderInvoicePreview();
+        showPreview();
     }
+    
+    // Wait for images to load
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     const { jsPDF } = window.jspdf;
     
@@ -625,46 +687,110 @@ async function generatePDF() {
     elements.generateBtn.innerHTML = '⏳ Generating...';
     elements.generateBtn.disabled = true;
     
+    // Disable all download buttons
+    elements.downloadOriginal.disabled = true;
+    elements.downloadDuplicate.disabled = true;
+    elements.downloadBoth.disabled = true;
+    
     try {
         const invoiceElement = elements.invoicePreview;
         
-        // Create canvas from the invoice preview
-        const canvas = await html2canvas(invoiceElement, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff'
-        });
+        // Define all copy types
+        const allCopyTypes = [
+            { key: 'original', label: 'ORIGINAL FOR RECIPIENT', suffix: 'Original' },
+            { key: 'duplicate', label: 'DUPLICATE FOR TRANSPORTER', suffix: 'Duplicate' }
+        ];
         
-        const imgData = canvas.toDataURL('image/png');
+        // Filter based on downloadType
+        const copyTypes = downloadType === 'both' 
+            ? allCopyTypes 
+            : allCopyTypes.filter(c => c.key === downloadType);
         
-        // Calculate dimensions for A4
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        const imgX = (pdfWidth - imgWidth * ratio) / 2;
-        const imgY = 10;
-        
-        pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-        
-        // Generate filename
         const invoiceNo = document.getElementById('invoiceNo').value || 'invoice';
         const date = new Date().toISOString().split('T')[0];
-        const filename = `${invoiceNo.replace(/[^a-zA-Z0-9]/g, '_')}_${date}.pdf`;
         
-        pdf.save(filename);
+        for (let i = 0; i < copyTypes.length; i++) {
+            // Update the copy type text
+            const originalTextElement = invoiceElement.querySelector('.original-text');
+            if (originalTextElement) {
+                originalTextElement.textContent = `(${copyTypes[i].label})`;
+            }
+            
+            // Wait a bit for DOM update
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Create canvas from the invoice preview
+            const canvas = await html2canvas(invoiceElement, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+                imageTimeout: 0,
+                onclone: function(clonedDoc) {
+                    const clonedElement = clonedDoc.getElementById('invoicePreview');
+                    if (clonedElement) {
+                        clonedElement.style.display = 'block';
+                    }
+                }
+            });
+            
+            // Validate canvas dimensions
+            if (!canvas.width || !canvas.height) {
+                throw new Error('Failed to capture invoice preview');
+            }
+            
+            const imgData = canvas.toDataURL('image/png');
+            
+            // Create new PDF for each copy
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            
+            // Calculate scaling to fit A4 with margins
+            const margin = 10;
+            const maxWidth = pdfWidth - (margin * 2);
+            const maxHeight = pdfHeight - (margin * 2);
+            
+            const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+            const scaledWidth = imgWidth * ratio;
+            const scaledHeight = imgHeight * ratio;
+            const imgX = (pdfWidth - scaledWidth) / 2;
+            const imgY = margin;
+            
+            pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
+            
+            // Generate filename with suffix
+            const filename = `${invoiceNo.replace(/[^a-zA-Z0-9]/g, '_')}_${copyTypes[i].suffix}_${date}.pdf`;
+            pdf.save(filename);
+            
+            // Small delay between downloads
+            if (i < copyTypes.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+        
+        // Reset preview to match current tab
+        const currentLabel = currentCopyType === 'duplicate' 
+            ? 'DUPLICATE FOR TRANSPORTER' 
+            : 'ORIGINAL FOR RECIPIENT';
+        const originalTextElement = invoiceElement.querySelector('.original-text');
+        if (originalTextElement) {
+            originalTextElement.textContent = `(${currentLabel})`;
+        }
         
     } catch (error) {
         console.error('PDF generation error:', error);
-        alert('Error generating PDF. Please try again.');
+        alert('Error generating PDF: ' + error.message + '\n\nTip: Try running a local server or open in a different browser.');
     } finally {
         elements.generateBtn.innerHTML = originalText;
         elements.generateBtn.disabled = false;
+        elements.downloadOriginal.disabled = false;
+        elements.downloadDuplicate.disabled = false;
+        elements.downloadBoth.disabled = false;
     }
 }
 
