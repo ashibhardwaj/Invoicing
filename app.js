@@ -721,7 +721,7 @@ async function generatePDF(downloadType = 'both') {
             
             // Create canvas from the invoice preview
             const canvas = await html2canvas(invoiceElement, {
-                scale: 2,
+                scale: 1.5,
                 useCORS: true,
                 allowTaint: true,
                 logging: false,
@@ -740,7 +740,8 @@ async function generatePDF(downloadType = 'both') {
                 throw new Error('Failed to capture invoice preview');
             }
             
-            const imgData = canvas.toDataURL('image/png');
+            // Use JPEG with compression for smaller file size
+            const imgData = canvas.toDataURL('image/jpeg', 0.85);
             
             // Create new PDF for each copy
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -761,7 +762,7 @@ async function generatePDF(downloadType = 'both') {
             const imgX = (pdfWidth - scaledWidth) / 2;
             const imgY = margin;
             
-            pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
+            pdf.addImage(imgData, 'JPEG', imgX, imgY, scaledWidth, scaledHeight);
             
             // Generate filename with suffix
             const filename = `${invoiceNo.replace(/[^a-zA-Z0-9]/g, '_')}_${copyTypes[i].suffix}_${date}.pdf`;
