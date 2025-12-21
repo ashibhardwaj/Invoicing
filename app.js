@@ -471,24 +471,15 @@ function renderInvoicePreview() {
                 </div>
                 <div class="invoice-meta-row">
                     <div class="invoice-meta-cell">
-                        <div class="label">Delivery Note</div>
-                        <div class="value">${escapeHtml(data.deliveryNote) || '-'}</div>
-                    </div>
-                    <div class="invoice-meta-cell">
                         <div class="label">Mode/Terms of Payment</div>
                         <div class="value">${escapeHtml(data.paymentTerms) || '-'}</div>
                     </div>
-                </div>
-                <div class="invoice-meta-row">
                     <div class="invoice-meta-cell">
                         <div class="label">Supplier's Ref.</div>
                         <div class="value">${escapeHtml(data.supplierRef) || '-'}</div>
                     </div>
-                    <div class="invoice-meta-cell">
-                        <div class="label">Other Reference(s)</div>
-                        <div class="value">-</div>
-                    </div>
                 </div>
+
                 <div class="invoice-meta-row">
                     <div class="invoice-meta-cell">
                         <div class="label">Buyer's Order No.</div>

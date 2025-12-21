@@ -610,6 +610,7 @@ body {
 
 .consignee-buyer-section {
     display: flex;
+    align-items: flex-start;
     border: 1px solid #000;
     border-top: none;
 }
@@ -618,9 +619,11 @@ body {
 .buyer-box {
     flex: 1;
     padding: 8px;
-    min-height: 100px;
-    height: 100px;
-    overflow: hidden;
+    min-height: 120px;
+    height: auto;
+    overflow: visible;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 .consignee-box {
