@@ -385,8 +385,6 @@ function getFormData() {
         buyerOrderDate: document.getElementById('buyerOrderDate').value,
         despatchThrough: document.getElementById('despatchThrough').value,
         destination: document.getElementById('destination').value,
-        vehicleNo: document.getElementById('vehicleNo').value,
-        deliveryNote: document.getElementById('deliveryNote').value,
         
         // Consignee
         consigneeName: document.getElementById('consigneeName').value,
