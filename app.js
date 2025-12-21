@@ -613,13 +613,13 @@ function renderInvoicePreview() {
         </div>
         
         <div class="footer-section">
-            <div class="footer-left">
+            <div class="footer-third">
                 <div class="declaration-section">
                     <strong>Declaration:</strong><br>
                     ${escapeHtml(data.declaration).replace(/\n/g, '<br>')}
                 </div>
             </div>
-            <div class="footer-right">
+            <div class="footer-third">
                 ${data.bankName ? `
                 <div class="bank-details">
                     <strong>Company's Bank Details</strong>
@@ -629,6 +629,8 @@ function renderInvoicePreview() {
                     ${data.ifscCode ? `<div>IFSC Code: ${escapeHtml(data.ifscCode)}</div>` : ''}
                 </div>
                 ` : ''}
+            </div>
+            <div class="footer-third">
                 <div class="signature-section">
                     for <strong>${escapeHtml(data.sellerName) || 'Company Name'}</strong>
                     <div class="signature-line">Authorised Signatory</div>
@@ -641,6 +643,10 @@ function renderInvoicePreview() {
             ${escapeHtml(data.jurisdiction)}
         </div>
         ` : ''}
+        
+        <div class="computer-generated">
+            This is a computer generated invoice
+        </div>
     `;
 }
 
