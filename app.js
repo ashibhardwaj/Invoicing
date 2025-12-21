@@ -511,16 +511,6 @@ function renderInvoicePreview() {
                         <div class="value">${escapeHtml(data.destination) || '-'}</div>
                     </div>
                 </div>
-                <div class="invoice-meta-row">
-                    <div class="invoice-meta-cell">
-                        <div class="label">Motor Vehicle No.</div>
-                        <div class="value">${escapeHtml(data.vehicleNo) || '-'}</div>
-                    </div>
-                    <div class="invoice-meta-cell">
-                        <div class="label">Terms of Delivery</div>
-                        <div class="value">-</div>
-                    </div>
-                </div>
             </div>
         </div>
         
@@ -637,10 +627,7 @@ function renderInvoicePreview() {
             <div class="footer-left">
                 <div class="declaration-section">
                     <strong>Declaration:</strong><br>
-                    ${escapeHtml(data.declaration)}
-                </div>
-                <div style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 10px;">
-                    <strong>Customer's Seal and Signature</strong>
+                    ${escapeHtml(data.declaration).replace(/\n/g, '<br>')}
                 </div>
             </div>
             <div class="footer-right">
