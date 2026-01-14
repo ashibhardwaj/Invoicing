@@ -9,6 +9,13 @@
 let items = [];
 let itemIdCounter = 0;
 
+// Proforma Invoice items
+let piItems = [];
+let piItemIdCounter = 0;
+
+// Current active tab
+let currentTab = 'tax-invoice';
+
 // ============================================
 // DOM Elements
 // ============================================
@@ -26,7 +33,20 @@ const elements = {
     downloadBoth: document.getElementById('downloadBoth'),
     sameAsConsignee: document.getElementById('sameAsConsignee'),
     buyerFields: document.getElementById('buyerFields'),
-    previewTabs: document.querySelectorAll('.preview-tab')
+    previewTabs: document.querySelectorAll('.preview-tab'),
+    
+    // Proforma Invoice elements
+    piForm: document.getElementById('proformaForm'),
+    piItemsBody: document.getElementById('piItemsBody'),
+    piAddItemBtn: document.getElementById('piAddItemBtn'),
+    piPreviewBtn: document.getElementById('piPreviewBtn'),
+    piGenerateBtn: document.getElementById('piGenerateBtn'),
+    piPreviewModal: document.getElementById('piPreviewModal'),
+    piCloseModal: document.getElementById('piCloseModal'),
+    piInvoicePreview: document.getElementById('piInvoicePreview'),
+    piDownloadPDF: document.getElementById('piDownloadPDF'),
+    piSameAsConsignee: document.getElementById('piSameAsConsignee'),
+    piBuyerFields: document.getElementById('piBuyerFields')
 };
 
 // Current preview copy type
@@ -43,11 +63,16 @@ function initializeApp() {
     // Set default date to today
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('invoiceDate').value = today;
+    document.getElementById('piInvoiceDate').value = today;
     
-    // Add first empty item row
+    // Add first empty item row for both forms
     addItemRow();
+    addPiItemRow();
     
-    // Event Listeners
+    // Tab Navigation
+    initializeTabs();
+    
+    // Tax Invoice Event Listeners
     elements.addItemBtn.addEventListener('click', addItemRow);
     elements.previewBtn.addEventListener('click', showPreview);
     elements.generateBtn.addEventListener('click', () => generatePDF('both'));
@@ -57,6 +82,14 @@ function initializeApp() {
     elements.downloadBoth.addEventListener('click', () => generatePDF('both'));
     elements.sameAsConsignee.addEventListener('change', handleSameAsConsignee);
     
+    // Proforma Invoice Event Listeners
+    elements.piAddItemBtn.addEventListener('click', addPiItemRow);
+    elements.piPreviewBtn.addEventListener('click', showPiPreview);
+    elements.piGenerateBtn.addEventListener('click', () => generatePiPDF());
+    elements.piCloseModal.addEventListener('click', closePiPreview);
+    elements.piDownloadPDF.addEventListener('click', () => generatePiPDF());
+    elements.piSameAsConsignee.addEventListener('change', handlePiSameAsConsignee);
+    
     // Close modal on overlay click
     elements.previewModal.addEventListener('click', (e) => {
         if (e.target === elements.previewModal) {
@@ -64,14 +97,25 @@ function initializeApp() {
         }
     });
     
-    // Close modal on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && elements.previewModal.classList.contains('active')) {
-            closePreview();
+    elements.piPreviewModal.addEventListener('click', (e) => {
+        if (e.target === elements.piPreviewModal) {
+            closePiPreview();
         }
     });
     
-    // Preview tab switching
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (elements.previewModal.classList.contains('active')) {
+                closePreview();
+            }
+            if (elements.piPreviewModal.classList.contains('active')) {
+                closePiPreview();
+            }
+        }
+    });
+    
+    // Preview tab switching (for Tax Invoice)
     elements.previewTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             // Update active tab
@@ -81,6 +125,36 @@ function initializeApp() {
             // Update copy type and re-render
             currentCopyType = tab.dataset.copy;
             renderInvoicePreview();
+        });
+    });
+}
+
+// ============================================
+// Tab Navigation
+// ============================================
+function initializeTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            
+            const tabId = btn.dataset.tab;
+            
+            // Update active tab button
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update active tab content
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                }
+            });
+            
+            currentTab = tabId;
         });
     });
 }
@@ -798,3 +872,486 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ============================================
+// PROFORMA INVOICE FUNCTIONS
+// ============================================
+
+// ============================================
+// Proforma Invoice - Item Management
+// ============================================
+function addPiItemRow() {
+    const itemId = ++piItemIdCounter;
+    piItems.push({
+        id: itemId,
+        description: '',
+        hsn: '',
+        quantity: '',
+        per: 'Set',
+        rate: '',
+        amount: 0
+    });
+    
+    renderPiItems();
+}
+
+function removePiItem(itemId) {
+    piItems = piItems.filter(item => item.id !== itemId);
+    if (piItems.length === 0) {
+        addPiItemRow();
+    } else {
+        renderPiItems();
+    }
+}
+
+function updatePiItem(itemId, field, value) {
+    const item = piItems.find(i => i.id === itemId);
+    if (item) {
+        item[field] = value;
+        
+        // Calculate amount if quantity and rate are set
+        if (field === 'quantity' || field === 'rate') {
+            const qty = parseFloat(item.quantity) || 0;
+            const rate = parseFloat(item.rate) || 0;
+            item.amount = qty * rate;
+        }
+        
+        // Update display
+        const amountCell = document.querySelector(`[data-pi-item-id="${itemId}"] .amount-cell`);
+        if (amountCell) {
+            amountCell.textContent = item.amount > 0 ? formatCurrency(item.amount) : '';
+        }
+    }
+}
+
+function renderPiItems() {
+    elements.piItemsBody.innerHTML = piItems.map((item, index) => `
+        <tr data-pi-item-id="${item.id}">
+            <td class="col-sno">${index + 1}</td>
+            <td class="col-desc">
+                <input type="text" 
+                       value="${escapeHtml(item.description)}" 
+                       placeholder="Product/Service description"
+                       onchange="updatePiItem(${item.id}, 'description', this.value)">
+            </td>
+            <td class="col-hsn">
+                <input type="text" 
+                       value="${escapeHtml(item.hsn)}" 
+                       placeholder="HSN Code"
+                       onchange="updatePiItem(${item.id}, 'hsn', this.value)">
+            </td>
+            <td class="col-qty">
+                <input type="number" 
+                       value="${item.quantity}" 
+                       placeholder="Qty"
+                       step="0.01"
+                       onchange="updatePiItem(${item.id}, 'quantity', this.value)">
+            </td>
+            <td class="col-unit">
+                <input type="text" 
+                       value="${escapeHtml(item.per)}" 
+                       placeholder="Per"
+                       onchange="updatePiItem(${item.id}, 'per', this.value)">
+            </td>
+            <td class="col-rate">
+                <input type="number" 
+                       value="${item.rate}" 
+                       placeholder="Rate"
+                       step="0.01"
+                       onchange="updatePiItem(${item.id}, 'rate', this.value)">
+            </td>
+            <td class="col-amount amount-cell">${item.amount > 0 ? formatCurrency(item.amount) : ''}</td>
+            <td class="col-action">
+                <button type="button" class="btn btn-remove" onclick="removePiItem(${item.id})">×</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ============================================
+// Proforma Invoice - Same as Consignee Handler
+// ============================================
+function handlePiSameAsConsignee(e) {
+    const buyerInputs = elements.piBuyerFields.querySelectorAll('input, textarea');
+    
+    if (e.target.checked) {
+        // Copy consignee values to buyer
+        document.getElementById('piBuyerName').value = document.getElementById('piConsigneeName').value;
+        document.getElementById('piBuyerAddress').value = document.getElementById('piConsigneeAddress').value;
+        document.getElementById('piBuyerGSTIN').value = document.getElementById('piConsigneeGSTIN').value;
+        document.getElementById('piBuyerState').value = document.getElementById('piConsigneeState').value;
+        
+        // Disable buyer fields
+        buyerInputs.forEach(input => input.disabled = true);
+    } else {
+        // Enable buyer fields
+        buyerInputs.forEach(input => input.disabled = false);
+    }
+}
+
+// ============================================
+// Proforma Invoice - Calculations
+// ============================================
+function calculatePiTotals() {
+    const subtotal = piItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+    
+    const igstRate = parseFloat(document.getElementById('piIgstRate').value) || 0;
+    const igst = subtotal * (igstRate / 100);
+    
+    let total = subtotal + igst;
+    let roundOff = 0;
+    
+    if (document.getElementById('piRoundOff').checked) {
+        const roundedTotal = Math.round(total);
+        roundOff = roundedTotal - total;
+        total = roundedTotal;
+    }
+    
+    const totalQuantity = piItems.reduce((sum, item) => {
+        const qty = parseFloat(item.quantity) || 0;
+        return sum + qty;
+    }, 0);
+    
+    return {
+        subtotal,
+        igst,
+        igstRate,
+        roundOff,
+        total,
+        totalQuantity
+    };
+}
+
+// ============================================
+// Proforma Invoice - Form Data
+// ============================================
+function getPiFormData() {
+    return {
+        // Seller
+        sellerName: document.getElementById('piSellerName').value,
+        sellerAddress: document.getElementById('piSellerAddress').value,
+        sellerGSTIN: document.getElementById('piSellerGSTIN').value,
+        sellerState: document.getElementById('piSellerState').value,
+        sellerPAN: document.getElementById('piSellerPAN').value,
+        
+        // Invoice Details
+        invoiceNo: document.getElementById('piInvoiceNo').value,
+        invoiceDate: document.getElementById('piInvoiceDate').value,
+        deliveryNote: document.getElementById('piDeliveryNote').value,
+        dispatchDocNo: document.getElementById('piDispatchDocNo').value,
+        deliveryNoteDate: document.getElementById('piDeliveryNoteDate').value,
+        dispatchedThrough: document.getElementById('piDispatchedThrough').value,
+        destination: document.getElementById('piDestination').value,
+        
+        // Consignee
+        consigneeName: document.getElementById('piConsigneeName').value,
+        consigneeAddress: document.getElementById('piConsigneeAddress').value,
+        consigneeGSTIN: document.getElementById('piConsigneeGSTIN').value,
+        consigneeState: document.getElementById('piConsigneeState').value,
+        
+        // Buyer
+        buyerName: document.getElementById('piBuyerName').value,
+        buyerAddress: document.getElementById('piBuyerAddress').value,
+        buyerGSTIN: document.getElementById('piBuyerGSTIN').value,
+        buyerState: document.getElementById('piBuyerState').value,
+        
+        // Bank
+        bankName: document.getElementById('piBankName').value,
+        accountNo: document.getElementById('piAccountNo').value,
+        ifscCode: document.getElementById('piIfscCode').value,
+        branch: document.getElementById('piBranch').value,
+        
+        // Terms
+        paymentTerms: document.getElementById('piPaymentTerms').value,
+        deliveryTerms: document.getElementById('piDeliveryTerms').value
+    };
+}
+
+// ============================================
+// Proforma Invoice - Preview
+// ============================================
+function showPiPreview() {
+    renderPiInvoicePreview();
+    elements.piPreviewModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePiPreview() {
+    elements.piPreviewModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function renderPiInvoicePreview() {
+    const data = getPiFormData();
+    const totals = calculatePiTotals();
+    const validItems = piItems.filter(item => item.description || item.amount > 0);
+    
+    elements.piInvoicePreview.innerHTML = `
+        <div class="invoice-header">
+            PROFORMA INVOICE
+        </div>
+        
+        <div class="invoice-top-section">
+            <div class="seller-section">
+                <div class="seller-name">${escapeHtml(data.sellerName) || 'Company Name'}</div>
+                <div>${escapeHtml(data.sellerAddress) || 'Company Address'}</div>
+                ${data.sellerGSTIN ? `<div>GSTIN/UIN: ${escapeHtml(data.sellerGSTIN)}</div>` : ''}
+                ${data.sellerState ? `<div>State Name: ${escapeHtml(data.sellerState)}</div>` : ''}
+            </div>
+            <div class="invoice-meta-section">
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">Invoice No.</div>
+                        <div class="value">${escapeHtml(data.invoiceNo) || '-'}</div>
+                    </div>
+                    <div class="invoice-meta-cell">
+                        <div class="label">Dated</div>
+                        <div class="value">${formatDate(data.invoiceDate) || '-'}</div>
+                    </div>
+                </div>
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">Delivery Note</div>
+                        <div class="value">${escapeHtml(data.deliveryNote) || '-'}</div>
+                    </div>
+                </div>
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">Dispatch Doc No.</div>
+                        <div class="value">${escapeHtml(data.dispatchDocNo) || '-'}</div>
+                    </div>
+                    <div class="invoice-meta-cell">
+                        <div class="label">Delivery Note Date</div>
+                        <div class="value">${formatDate(data.deliveryNoteDate) || '-'}</div>
+                    </div>
+                </div>
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">Dispatched through</div>
+                        <div class="value">${escapeHtml(data.dispatchedThrough) || '-'}</div>
+                    </div>
+                    <div class="invoice-meta-cell">
+                        <div class="label">Destination</div>
+                        <div class="value">${escapeHtml(data.destination) || '-'}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="consignee-buyer-section">
+            <div class="consignee-box">
+                <div class="box-title">Consignee (Ship to)</div>
+                <div>${escapeHtml(data.consigneeName) || 'Consignee Name'}</div>
+                <div>${escapeHtml(data.consigneeAddress) || 'Address'}</div>
+                ${data.consigneeGSTIN ? `<div>GSTIN/UIN: ${escapeHtml(data.consigneeGSTIN)}</div>` : ''}
+                ${data.consigneeState ? `<div>State Name: ${escapeHtml(data.consigneeState)}</div>` : ''}
+            </div>
+            <div class="buyer-box">
+                <div class="box-title">Buyer (Bill to)</div>
+                <div>${escapeHtml(data.buyerName) || 'Buyer Name'}</div>
+                <div>${escapeHtml(data.buyerAddress) || 'Address'}</div>
+                ${data.buyerGSTIN ? `<div>GSTIN/UIN: ${escapeHtml(data.buyerGSTIN)}</div>` : ''}
+                ${data.buyerState ? `<div>State Name: ${escapeHtml(data.buyerState)}</div>` : ''}
+            </div>
+        </div>
+        
+        <div class="items-section">
+            <div class="items-header">
+                <div class="col-sno-prev">Sl No.</div>
+                <div class="col-desc-prev">Description of Goods</div>
+                <div class="col-hsn-prev">HSN/SAC</div>
+                <div class="col-qty-prev">Quantity</div>
+                <div class="col-rate-prev">Rate</div>
+                <div class="col-per-prev">per</div>
+                <div class="col-amount-prev">Amount</div>
+            </div>
+            <div class="items-body">
+                ${validItems.map((item, index) => `
+                    <div class="item-row">
+                        <div class="col-sno-prev">${index + 1}</div>
+                        <div class="col-desc-prev">${escapeHtml(item.description) || ''}</div>
+                        <div class="col-hsn-prev">${escapeHtml(item.hsn) || ''}</div>
+                        <div class="col-qty-prev">${item.quantity || ''} ${escapeHtml(item.per) || ''}</div>
+                        <div class="col-rate-prev">${item.rate ? formatCurrency(parseFloat(item.rate)) : ''}</div>
+                        <div class="col-per-prev">${escapeHtml(item.per) || ''}</div>
+                        <div class="col-amount-prev">${item.amount ? formatCurrency(item.amount) : ''}</div>
+                    </div>
+                `).join('')}
+                ${Array.from({length: Math.max(0, 5 - validItems.length)}).map(() => `
+                    <div class="item-row">
+                        <div class="col-sno-prev">&nbsp;</div>
+                        <div class="col-desc-prev">&nbsp;</div>
+                        <div class="col-hsn-prev">&nbsp;</div>
+                        <div class="col-qty-prev">&nbsp;</div>
+                        <div class="col-rate-prev">&nbsp;</div>
+                        <div class="col-per-prev">&nbsp;</div>
+                        <div class="col-amount-prev">&nbsp;</div>
+                    </div>
+                `).join('')}
+                <div class="item-row">
+                    <div class="col-sno-prev"></div>
+                    <div class="col-desc-prev"></div>
+                    <div class="col-hsn-prev"></div>
+                    <div class="col-qty-prev"></div>
+                    <div class="col-rate-prev"></div>
+                    <div class="col-per-prev" style="text-align: right; font-weight: bold; justify-content: flex-end;">Total</div>
+                    <div class="col-amount-prev" style="font-weight: bold;">${totals.totalQuantity} ${validItems[0]?.per || 'Set'}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="amount-words">
+            Amount Chargeable (in words)<br>
+            <strong>${numberToWords(totals.subtotal)}</strong>
+        </div>
+        
+        <div class="totals-section">
+            <div class="total-row" style="justify-content: flex-end; padding: 4px 8px; border-bottom: 1px solid #ccc;">
+                <span style="margin-right: auto;">Total</span>
+                <span style="width: 80px; text-align: right;">${formatCurrency(totals.subtotal)}</span>
+            </div>
+            <div class="total-row" style="justify-content: flex-end; padding: 4px 8px; border-bottom: 1px solid #ccc;">
+                <span style="margin-right: auto;">E. & O.E</span>
+                <span style="width: 80px;"></span>
+            </div>
+        </div>
+        
+        <div class="tax-summary-section">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                    <tr style="background: #f5f5f5; font-weight: bold;">
+                        <th style="padding: 6px; border: 1px solid #000; text-align: center;">Taxable Value</th>
+                        <th style="padding: 6px; border: 1px solid #000; text-align: center;">IGST Rate</th>
+                        <th style="padding: 6px; border: 1px solid #000; text-align: center;">IGST Amount</th>
+                        <th style="padding: 6px; border: 1px solid #000; text-align: center;">Total Tax Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.subtotal)}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${totals.igstRate}%</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.igst)}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.igst)}</td>
+                    </tr>
+                    <tr style="font-weight: bold;">
+                        <td style="padding: 6px; border: 1px solid #000;">Total: ${formatCurrency(totals.subtotal)}</td>
+                        <td style="padding: 6px; border: 1px solid #000;"></td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.igst)}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.igst)}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="padding: 8px; border: 1px solid #000; border-top: none; font-size: 12px; font-style: italic;">
+            Tax Amount (in words): <strong>${numberToWords(totals.igst)}</strong>
+        </div>
+        
+        <div class="footer-section">
+            <div class="footer-third">
+                ${data.sellerPAN ? `<div class="pan-section">Company's PAN: <strong>${escapeHtml(data.sellerPAN)}</strong></div>` : ''}
+                <div style="margin-top: 10px;">
+                    <strong>Terms & Conditions</strong><br>
+                    Payment Terms: ${escapeHtml(data.paymentTerms) || 'N/A'}<br>
+                    Delivery Terms: ${escapeHtml(data.deliveryTerms) || 'N/A'}
+                </div>
+            </div>
+            <div class="footer-third">
+                <div class="bank-details">
+                    <strong>Company's Bank Details</strong>
+                    ${data.bankName ? `<div>Bank Name: ${escapeHtml(data.bankName)}</div>` : ''}
+                    ${data.accountNo ? `<div>A/c No.: ${escapeHtml(data.accountNo)}</div>` : ''}
+                    ${data.ifscCode ? `<div>Branch & IFS Code: ${escapeHtml(data.ifscCode)}</div>` : ''}
+                </div>
+            </div>
+            <div class="footer-third">
+                <div class="signature-section">
+                    <strong>for ${escapeHtml(data.sellerName)}</strong>
+                    <div class="signature-line">
+                        Authorised Signatory
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="computer-generated">
+            This is a Computer Generated Invoice
+        </div>
+    `;
+}
+
+// ============================================
+// Proforma Invoice - PDF Generation
+// ============================================
+async function generatePiPDF() {
+    // Disable buttons during generation
+    elements.piGenerateBtn.disabled = true;
+    elements.piDownloadPDF.disabled = true;
+    const originalText = elements.piGenerateBtn.innerHTML;
+    elements.piGenerateBtn.innerHTML = '⏳ Generating PDF...';
+    
+    try {
+        const invoiceElement = elements.piInvoicePreview;
+        
+        // Wait a bit for DOM update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Create canvas from the invoice preview
+        const canvas = await html2canvas(invoiceElement, {
+            scale: 1.5,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            imageTimeout: 0,
+            onclone: function(clonedDoc) {
+                const clonedElement = clonedDoc.getElementById('piInvoicePreview');
+                if (clonedElement) {
+                    clonedElement.style.display = 'block';
+                }
+            }
+        });
+        
+        // Validate canvas dimensions
+        if (!canvas.width || !canvas.height) {
+            throw new Error('Failed to capture proforma invoice preview');
+        }
+        
+        // Use JPEG with compression for smaller file size
+        const imgData = canvas.toDataURL('image/jpeg', 0.85);
+        
+        // Create new PDF
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        
+        // Calculate scaling to fit A4 with margins
+        const margin = 10;
+        const maxWidth = pdfWidth - (margin * 2);
+        const maxHeight = pdfHeight - (margin * 2);
+        
+        const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+        const scaledWidth = imgWidth * ratio;
+        const scaledHeight = imgHeight * ratio;
+        const imgX = (pdfWidth - scaledWidth) / 2;
+        const imgY = margin;
+        
+        pdf.addImage(imgData, 'JPEG', imgX, imgY, scaledWidth, scaledHeight);
+        
+        // Generate filename
+        const invoiceNo = document.getElementById('piInvoiceNo').value || 'proforma_invoice';
+        const date = new Date().toISOString().split('T')[0];
+        const filename = `${invoiceNo.replace(/[^a-zA-Z0-9]/g, '_')}_${date}.pdf`;
+        pdf.save(filename);
+        
+    } catch (error) {
+        console.error('PDF generation error:', error);
+        alert('Error generating PDF: ' + error.message + '\n\nTip: Try running a local server or open in a different browser.');
+    } finally {
+        elements.piGenerateBtn.innerHTML = originalText;
+        elements.piGenerateBtn.disabled = false;
+        elements.piDownloadPDF.disabled = false;
+    }
+}

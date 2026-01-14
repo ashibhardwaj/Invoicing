@@ -11,11 +11,26 @@
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
-            <h1>Tax Invoice Generator</h1>
-            <p class="subtitle">GST Compliant Invoice Generator</p>
+            <h1>Invoice Generator</h1>
+            <p class="subtitle">GST Compliant Document Generator</p>
         </header>
 
+        <!-- Tab Navigation -->
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="tax-invoice">
+                📄 Tax Invoice
+            </button>
+            <button class="tab-btn" data-tab="proforma-invoice">
+                📋 Proforma Invoice
+            </button>
+            <button class="tab-btn" data-tab="purchase-order" disabled>
+                🛒 Purchase Order (Coming Soon)
+            </button>
+        </nav>
+
         <main class="main-content">
+            <!-- Tax Invoice Tab Content -->
+            <div class="tab-content active" id="tax-invoice">
             <!-- Form Section -->
             <section class="form-section">
                 <form id="invoiceForm">
@@ -263,6 +278,253 @@ Goods once sold will not be taken back.</textarea>
                     </div>
                 </form>
             </section>
+            </div>
+            <!-- End Tax Invoice Tab -->
+
+            <!-- Proforma Invoice Tab Content -->
+            <div class="tab-content" id="proforma-invoice">
+            <section class="form-section">
+                <form id="proformaForm">
+                    <!-- Seller Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">🏢</span>
+                            Seller Details
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="piSellerName">Company Name</label>
+                                <input type="text" id="piSellerName" value="ACU Enterprises">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="piSellerAddress">Address</label>
+                                <textarea id="piSellerAddress" rows="2">Lt Sh Nihal Singh Mukdam Road, Near National Furniture, RIICO Industrial Area, Bhiwadi, Khairthal Tijara</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="piSellerGSTIN">GSTIN/UIN</label>
+                                <input type="text" id="piSellerGSTIN" value="08APVPK8585J1ZS">
+                            </div>
+                            <div class="form-group">
+                                <label for="piSellerState">State Name & Code</label>
+                                <input type="text" id="piSellerState" value="Rajasthan, Code: 08">
+                            </div>
+                            <div class="form-group">
+                                <label for="piSellerPAN">Company's PAN</label>
+                                <input type="text" id="piSellerPAN" value="AAEPR9276K">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Proforma Invoice Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Proforma Invoice Details
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="piInvoiceNo">Invoice No.</label>
+                                <input type="text" id="piInvoiceNo" placeholder="PI/25-26/066">
+                            </div>
+                            <div class="form-group">
+                                <label for="piInvoiceDate">Dated</label>
+                                <input type="date" id="piInvoiceDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="piDeliveryNote">Delivery Note</label>
+                                <input type="text" id="piDeliveryNote" placeholder="Delivery details">
+                            </div>
+                            <div class="form-group">
+                                <label for="piDispatchDocNo">Dispatch Doc No.</label>
+                                <input type="text" id="piDispatchDocNo" placeholder="Doc number">
+                            </div>
+                            <div class="form-group">
+                                <label for="piDeliveryNoteDate">Delivery Note Date</label>
+                                <input type="date" id="piDeliveryNoteDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="piDispatchedThrough">Dispatched Through</label>
+                                <input type="text" id="piDispatchedThrough" placeholder="NITCO TPT">
+                            </div>
+                            <div class="form-group">
+                                <label for="piDestination">Destination</label>
+                                <input type="text" id="piDestination" placeholder="City Name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consignee Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📦</span>
+                            Consignee (Ship To)
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="piConsigneeName">Name</label>
+                                <input type="text" id="piConsigneeName" placeholder="Consignee Company Name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="piConsigneeAddress">Address</label>
+                                <textarea id="piConsigneeAddress" rows="2" placeholder="Full Address"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="piConsigneeGSTIN">GSTIN/UIN</label>
+                                <input type="text" id="piConsigneeGSTIN" placeholder="22AAAAA0000A1Z5">
+                            </div>
+                            <div class="form-group">
+                                <label for="piConsigneeState">State Name</label>
+                                <input type="text" id="piConsigneeState" placeholder="Rajasthan, Code: 08">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buyer Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">🧾</span>
+                            Buyer (Bill To)
+                            <label class="same-as-consignee">
+                                <input type="checkbox" id="piSameAsConsignee"> Same as Consignee
+                            </label>
+                        </h2>
+                        <div class="form-grid" id="piBuyerFields">
+                            <div class="form-group full-width">
+                                <label for="piBuyerName">Name</label>
+                                <input type="text" id="piBuyerName" placeholder="Buyer Company Name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="piBuyerAddress">Address</label>
+                                <textarea id="piBuyerAddress" rows="2" placeholder="Full Address"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="piBuyerGSTIN">GSTIN/UIN</label>
+                                <input type="text" id="piBuyerGSTIN" placeholder="22AAAAA0000A1Z5">
+                            </div>
+                            <div class="form-group">
+                                <label for="piBuyerState">State Name</label>
+                                <input type="text" id="piBuyerState" placeholder="Rajasthan, Code: 08">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📝</span>
+                            Items
+                        </h2>
+                        <div class="items-table-container">
+                            <table class="items-table" id="piItemsTable">
+                                <thead>
+                                    <tr>
+                                        <th class="col-sno">S.No</th>
+                                        <th class="col-desc">Description of Goods</th>
+                                        <th class="col-hsn">HSN/SAC</th>
+                                        <th class="col-qty">Quantity</th>
+                                        <th class="col-unit">Per</th>
+                                        <th class="col-rate">Rate</th>
+                                        <th class="col-amount">Amount</th>
+                                        <th class="col-action"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="piItemsBody">
+                                    <!-- Items will be added here dynamically -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-add" id="piAddItemBtn">
+                                <span>+</span> Add Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tax Settings -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">💰</span>
+                            Tax Settings
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="piIgstRate">IGST Rate (%)</label>
+                                <input type="number" id="piIgstRate" value="18" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="piRoundOff" checked> Apply Round Off
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">🏦</span>
+                            Bank Details
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="piBankName">Bank Name</label>
+                                <input type="text" id="piBankName" value="YES BANK LTD">
+                            </div>
+                            <div class="form-group">
+                                <label for="piAccountNo">Account No.</label>
+                                <input type="text" id="piAccountNo" value="003726900000126">
+                            </div>
+                            <div class="form-group">
+                                <label for="piIfscCode">IFSC Code</label>
+                                <input type="text" id="piIfscCode" value="YESB0000037">
+                            </div>
+                            <div class="form-group">
+                                <label for="piBranch">Branch</label>
+                                <input type="text" id="piBranch" value="DHARUHERA (HARYANA)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📌</span>
+                            Terms & Conditions
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="piPaymentTerms">Payment Terms</label>
+                                <input type="text" id="piPaymentTerms" value="100% Advanced">
+                            </div>
+                            <div class="form-group">
+                                <label for="piDeliveryTerms">Delivery Terms</label>
+                                <input type="text" id="piDeliveryTerms" value="4-5 Weeks">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-preview" id="piPreviewBtn">
+                            👁️ Preview Proforma Invoice
+                        </button>
+                        <button type="button" class="btn btn-generate" id="piGenerateBtn">
+                            📄 Generate PDF
+                        </button>
+                    </div>
+                </form>
+            </section>
+            </div>
+            <!-- End Proforma Invoice Tab -->
+
+            <!-- Purchase Order Tab Content (Placeholder) -->
+            <div class="tab-content" id="purchase-order">
+            <section class="form-section">
+                <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+                    <h2>🛒 Purchase Order</h2>
+                    <p style="margin-top: 1rem;">Coming Soon...</p>
+                </div>
+            </section>
+            </div>
+            <!-- End Purchase Order Tab -->
 
             <!-- Preview Modal -->
             <div class="modal-overlay" id="previewModal">
@@ -290,6 +552,28 @@ Goods once sold will not be taken back.</textarea>
                             </button>
                             <button class="btn btn-generate btn-both" id="downloadBoth">
                                 📄 Download Both
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proforma Invoice Preview Modal -->
+            <div class="modal-overlay" id="piPreviewModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Proforma Invoice Preview</h2>
+                        <button class="modal-close" id="piCloseModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="piInvoicePreview" class="invoice-preview">
+                            <!-- Proforma Invoice preview will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="download-options">
+                            <button class="btn btn-generate" id="piDownloadPDF">
+                                📄 Download PDF
                             </button>
                         </div>
                     </div>
