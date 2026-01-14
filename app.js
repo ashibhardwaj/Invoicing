@@ -1031,7 +1031,6 @@ function getPiFormData() {
         sellerAddress: document.getElementById('piSellerAddress').value,
         sellerGSTIN: document.getElementById('piSellerGSTIN').value,
         sellerState: document.getElementById('piSellerState').value,
-        sellerPAN: document.getElementById('piSellerPAN').value,
         
         // Invoice Details
         invoiceNo: document.getElementById('piInvoiceNo').value,
@@ -1209,10 +1208,6 @@ function renderPiInvoicePreview() {
                 <span style="margin-right: auto;">Total</span>
                 <span style="width: 80px; text-align: right;">${formatCurrency(totals.subtotal)}</span>
             </div>
-            <div class="total-row" style="justify-content: flex-end; padding: 4px 8px; border-bottom: 1px solid #ccc;">
-                <span style="margin-right: auto;">E. & O.E</span>
-                <span style="width: 80px;"></span>
-            </div>
         </div>
         
         <div class="tax-summary-section">
@@ -1248,8 +1243,7 @@ function renderPiInvoicePreview() {
         
         <div class="footer-section">
             <div class="footer-third">
-                ${data.sellerPAN ? `<div class="pan-section">Company's PAN: <strong>${escapeHtml(data.sellerPAN)}</strong></div>` : ''}
-                <div style="margin-top: 10px;">
+                <div>
                     <strong>Terms & Conditions</strong><br>
                     Payment Terms: ${escapeHtml(data.paymentTerms) || 'N/A'}<br>
                     Delivery Terms: ${escapeHtml(data.deliveryTerms) || 'N/A'}
