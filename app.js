@@ -1283,6 +1283,8 @@ function renderPiInvoicePreview() {
 // Proforma Invoice - PDF Generation
 // ============================================
 async function generatePiPDF() {
+    const { jsPDF } = window.jspdf;
+    
     // Disable buttons during generation
     elements.piGenerateBtn.disabled = true;
     elements.piDownloadPDF.disabled = true;
