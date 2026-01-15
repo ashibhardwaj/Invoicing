@@ -1198,18 +1198,6 @@ function renderPiInvoicePreview() {
             </div>
         </div>
         
-        <div class="amount-words">
-            Amount Chargeable (in words)<br>
-            <strong>${numberToWords(totals.total)}</strong>
-        </div>
-        
-        <div class="totals-section">
-            <div class="total-row" style="justify-content: flex-end; padding: 4px 8px; border-bottom: 1px solid #ccc;">
-                <span style="margin-right: auto;">Total</span>
-                <span style="width: 80px; text-align: right;">${formatCurrency(totals.subtotal)}</span>
-            </div>
-        </div>
-        
         <div class="tax-summary-section">
             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                 <thead>
@@ -1237,8 +1225,9 @@ function renderPiInvoicePreview() {
             </table>
         </div>
         
-        <div style="padding: 8px; border: 1px solid #000; border-top: none; font-size: 12px; font-style: italic;">
-            Tax Amount (in words): <strong>${numberToWords(totals.igst)}</strong>
+        <div class="amount-words">
+            Amount Chargeable (in words)<br>
+            <strong>${numberToWords(totals.total)}</strong>
         </div>
         
         <div class="footer-section">
