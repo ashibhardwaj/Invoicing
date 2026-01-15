@@ -1193,7 +1193,7 @@ function renderPiInvoicePreview() {
                     <div class="col-qty-prev"></div>
                     <div class="col-rate-prev"></div>
                     <div class="col-per-prev" style="text-align: right; font-weight: bold; justify-content: flex-end;">Total</div>
-                    <div class="col-amount-prev" style="font-weight: bold;">${totals.totalQuantity} ${validItems[0]?.per || 'Set'}</div>
+                    <div class="col-amount-prev" style="font-weight: bold;">${formatCurrency(totals.subtotal)}</div>
                 </div>
             </div>
         </div>
@@ -1225,13 +1225,13 @@ function renderPiInvoicePreview() {
                         <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.subtotal)}</td>
                         <td style="padding: 6px; border: 1px solid #000; text-align: center;">${totals.igstRate}%</td>
                         <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.igst)}</td>
-                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.igst)}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.total)}</td>
                     </tr>
                     <tr style="font-weight: bold;">
                         <td style="padding: 6px; border: 1px solid #000;">Total: ${formatCurrency(totals.subtotal)}</td>
                         <td style="padding: 6px; border: 1px solid #000;"></td>
                         <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.igst)}</td>
-                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.igst)}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${formatCurrency(totals.total)}</td>
                     </tr>
                 </tbody>
             </table>
