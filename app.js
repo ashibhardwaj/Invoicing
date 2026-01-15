@@ -1200,7 +1200,7 @@ function renderPiInvoicePreview() {
         
         <div class="amount-words">
             Amount Chargeable (in words)<br>
-            <strong>${numberToWords(totals.subtotal)}</strong>
+            <strong>${numberToWords(totals.total)}</strong>
         </div>
         
         <div class="totals-section">
