@@ -13,6 +13,10 @@ let itemIdCounter = 0;
 let piItems = [];
 let piItemIdCounter = 0;
 
+// Purchase Order items
+let poItems = [];
+let poItemIdCounter = 0;
+
 // Current active tab
 let currentTab = 'tax-invoice';
 
@@ -46,7 +50,18 @@ const elements = {
     piInvoicePreview: document.getElementById('piInvoicePreview'),
     piDownloadPDF: document.getElementById('piDownloadPDF'),
     piSameAsConsignee: document.getElementById('piSameAsConsignee'),
-    piBuyerFields: document.getElementById('piBuyerFields')
+    piBuyerFields: document.getElementById('piBuyerFields'),
+    
+    // Purchase Order elements
+    poForm: document.getElementById('purchaseOrderForm'),
+    poItemsBody: document.getElementById('poItemsBody'),
+    poAddItemBtn: document.getElementById('poAddItemBtn'),
+    poPreviewBtn: document.getElementById('poPreviewBtn'),
+    poGenerateBtn: document.getElementById('poGenerateBtn'),
+    poPreviewModal: document.getElementById('poPreviewModal'),
+    poCloseModal: document.getElementById('poCloseModal'),
+    poInvoicePreview: document.getElementById('poInvoicePreview'),
+    poDownloadPDF: document.getElementById('poDownloadPDF')
 };
 
 // Current preview copy type
@@ -64,10 +79,12 @@ function initializeApp() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('invoiceDate').value = today;
     document.getElementById('piInvoiceDate').value = today;
+    document.getElementById('poDate').value = today;
     
-    // Add first empty item row for both forms
+    // Add first empty item row for all forms
     addItemRow();
     addPiItemRow();
+    addPoItemRow();
     
     // Tab Navigation
     initializeTabs();
@@ -90,6 +107,13 @@ function initializeApp() {
     elements.piDownloadPDF.addEventListener('click', () => generatePiPDF());
     elements.piSameAsConsignee.addEventListener('change', handlePiSameAsConsignee);
     
+    // Purchase Order Event Listeners
+    elements.poAddItemBtn.addEventListener('click', addPoItemRow);
+    elements.poPreviewBtn.addEventListener('click', showPoPreview);
+    elements.poGenerateBtn.addEventListener('click', () => generatePoPDF());
+    elements.poCloseModal.addEventListener('click', closePoPreview);
+    elements.poDownloadPDF.addEventListener('click', () => generatePoPDF());
+    
     // Close modal on overlay click
     elements.previewModal.addEventListener('click', (e) => {
         if (e.target === elements.previewModal) {
@@ -103,6 +127,12 @@ function initializeApp() {
         }
     });
     
+    elements.poPreviewModal.addEventListener('click', (e) => {
+        if (e.target === elements.poPreviewModal) {
+            closePoPreview();
+        }
+    });
+    
     // Close modal on Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -111,6 +141,9 @@ function initializeApp() {
             }
             if (elements.piPreviewModal.classList.contains('active')) {
                 closePiPreview();
+            }
+            if (elements.poPreviewModal.classList.contains('active')) {
+                closePoPreview();
             }
         }
     });
@@ -1338,5 +1371,395 @@ async function generatePiPDF() {
         elements.piGenerateBtn.innerHTML = originalText;
         elements.piGenerateBtn.disabled = false;
         elements.piDownloadPDF.disabled = false;
+    }
+}
+
+// ============================================
+// Purchase Order - Item Management
+// ============================================
+function addPoItemRow() {
+    const itemId = ++poItemIdCounter;
+    poItems.push({
+        id: itemId,
+        description: '',
+        hsn: '',
+        quantity: '',
+        unit: 'Pcs.',
+        rate: '',
+        amount: 0
+    });
+    
+    renderPoItems();
+}
+
+function removePoItem(itemId) {
+    poItems = poItems.filter(item => item.id !== itemId);
+    if (poItems.length === 0) {
+        addPoItemRow();
+    } else {
+        renderPoItems();
+    }
+}
+
+function updatePoItem(itemId, field, value) {
+    const item = poItems.find(i => i.id === itemId);
+    if (item) {
+        item[field] = value;
+        
+        // Calculate amount if quantity and rate are set
+        if (field === 'quantity' || field === 'rate') {
+            const qty = parseFloat(item.quantity) || 0;
+            const rate = parseFloat(item.rate) || 0;
+            item.amount = qty * rate;
+        }
+        
+        // Update display
+        const amountCell = document.querySelector(`[data-po-item-id="${itemId}"] .amount-cell`);
+        if (amountCell) {
+            amountCell.textContent = item.amount > 0 ? formatCurrency(item.amount) : '';
+        }
+    }
+}
+
+function renderPoItems() {
+    elements.poItemsBody.innerHTML = poItems.map((item, index) => `
+        <tr data-po-item-id="${item.id}">
+            <td class="col-sno">${index + 1}</td>
+            <td class="col-desc">
+                <input type="text" 
+                       value="${escapeHtml(item.description)}" 
+                       placeholder="Product/Service description"
+                       onchange="updatePoItem(${item.id}, 'description', this.value)">
+            </td>
+            <td class="col-hsn">
+                <input type="text" 
+                       value="${escapeHtml(item.hsn)}" 
+                       placeholder="HSN Code"
+                       onchange="updatePoItem(${item.id}, 'hsn', this.value)">
+            </td>
+            <td class="col-qty">
+                <input type="number" 
+                       value="${item.quantity}" 
+                       placeholder="Qty"
+                       step="0.01"
+                       onchange="updatePoItem(${item.id}, 'quantity', this.value)">
+            </td>
+            <td class="col-unit">
+                <input type="text" 
+                       value="${escapeHtml(item.unit)}" 
+                       placeholder="Unit"
+                       onchange="updatePoItem(${item.id}, 'unit', this.value)">
+            </td>
+            <td class="col-rate">
+                <input type="number" 
+                       value="${item.rate}" 
+                       placeholder="Rate"
+                       step="0.01"
+                       onchange="updatePoItem(${item.id}, 'rate', this.value)">
+            </td>
+            <td class="col-amount amount-cell">${item.amount > 0 ? formatCurrency(item.amount) : ''}</td>
+            <td class="col-action">
+                <button type="button" class="btn btn-remove" onclick="removePoItem(${item.id})">×</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ============================================
+// Purchase Order - Calculations
+// ============================================
+function calculatePoTotals() {
+    const subtotal = poItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+    const total = subtotal;
+    
+    const totalQuantity = poItems.reduce((sum, item) => {
+        const qty = parseFloat(item.quantity) || 0;
+        return sum + qty;
+    }, 0);
+    
+    return {
+        subtotal,
+        total,
+        totalQuantity
+    };
+}
+
+// ============================================
+// Purchase Order - Form Data
+// ============================================
+function getPoFormData() {
+    return {
+        // Buyer (Your Company)
+        buyerName: document.getElementById('poBuyerName').value,
+        buyerAddress: document.getElementById('poBuyerAddress').value,
+        buyerGSTIN: document.getElementById('poBuyerGSTIN').value,
+        buyerState: document.getElementById('poBuyerState').value,
+        buyerEmail: document.getElementById('poBuyerEmail').value,
+        buyerPhone: document.getElementById('poBuyerPhone').value,
+        
+        // PO Details
+        poNumber: document.getElementById('poNumber').value,
+        poDate: document.getElementById('poDate').value,
+        deliveryDate: document.getElementById('poDeliveryDate').value,
+        paymentTerms: document.getElementById('poPaymentTerms').value,
+        shippingMethod: document.getElementById('poShippingMethod').value,
+        deliveryAddress: document.getElementById('poDeliveryAddress').value,
+        
+        // Vendor
+        vendorName: document.getElementById('poVendorName').value,
+        vendorAddress: document.getElementById('poVendorAddress').value,
+        vendorGSTIN: document.getElementById('poVendorGSTIN').value,
+        vendorState: document.getElementById('poVendorState').value,
+        vendorEmail: document.getElementById('poVendorEmail').value,
+        vendorPhone: document.getElementById('poVendorPhone').value,
+        
+        // Terms
+        terms: document.getElementById('poTerms').value,
+        notes: document.getElementById('poNotes').value
+    };
+}
+
+// ============================================
+// Purchase Order - Preview
+// ============================================
+function showPoPreview() {
+    renderPoInvoicePreview();
+    elements.poPreviewModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePoPreview() {
+    elements.poPreviewModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function renderPoInvoicePreview() {
+    const data = getPoFormData();
+    const totals = calculatePoTotals();
+    const validItems = poItems.filter(item => item.description || item.amount > 0);
+    
+    elements.poInvoicePreview.innerHTML = `
+        <div class="invoice-header">
+            PURCHASE ORDER
+        </div>
+        
+        <div class="invoice-top-section">
+            <div class="seller-section">
+                <div class="seller-name">${escapeHtml(data.buyerName) || 'Company Name'}</div>
+                <div>${escapeHtml(data.buyerAddress) || 'Company Address'}</div>
+                ${data.buyerGSTIN ? `<div>GSTIN/UIN: ${escapeHtml(data.buyerGSTIN)}</div>` : ''}
+                ${data.buyerState ? `<div>State Name: ${escapeHtml(data.buyerState)}</div>` : ''}
+                ${data.buyerEmail ? `<div>Email: ${escapeHtml(data.buyerEmail)}</div>` : ''}
+                ${data.buyerPhone ? `<div>Phone: ${escapeHtml(data.buyerPhone)}</div>` : ''}
+            </div>
+            <div class="invoice-meta-section">
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">PO Number</div>
+                        <div class="value">${escapeHtml(data.poNumber) || '-'}</div>
+                    </div>
+                    <div class="invoice-meta-cell">
+                        <div class="label">Date</div>
+                        <div class="value">${formatDate(data.poDate) || '-'}</div>
+                    </div>
+                </div>
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">Expected Delivery</div>
+                        <div class="value">${formatDate(data.deliveryDate) || '-'}</div>
+                    </div>
+                </div>
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">Payment Terms</div>
+                        <div class="value">${escapeHtml(data.paymentTerms) || '-'}</div>
+                    </div>
+                </div>
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">Shipping Method</div>
+                        <div class="value">${escapeHtml(data.shippingMethod) || '-'}</div>
+                    </div>
+                </div>
+                <div class="invoice-meta-row">
+                    <div class="invoice-meta-cell">
+                        <div class="label">Delivery Address</div>
+                        <div class="value">${escapeHtml(data.deliveryAddress) || '-'}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="consignee-buyer-section">
+            <div class="consignee-box" style="width: 100%; border-right: none;">
+                <div class="box-title">Vendor/Supplier Details</div>
+                <div>${escapeHtml(data.vendorName) || 'Vendor Name'}</div>
+                <div>${escapeHtml(data.vendorAddress) || 'Address'}</div>
+                ${data.vendorGSTIN ? `<div>GSTIN/UIN: ${escapeHtml(data.vendorGSTIN)}</div>` : ''}
+                ${data.vendorState ? `<div>State Name: ${escapeHtml(data.vendorState)}</div>` : ''}
+                ${data.vendorEmail ? `<div>Email: ${escapeHtml(data.vendorEmail)}</div>` : ''}
+                ${data.vendorPhone ? `<div>Phone: ${escapeHtml(data.vendorPhone)}</div>` : ''}
+            </div>
+        </div>
+        
+        <div class="items-section">
+            <div class="items-header">
+                <div class="col-sno-prev">S.No</div>
+                <div class="col-desc-prev">Description of Goods</div>
+                <div class="col-hsn-prev">HSN/SAC</div>
+                <div class="col-qty-prev">Quantity</div>
+                <div class="col-rate-prev">Rate</div>
+                <div class="col-per-prev">Unit</div>
+                <div class="col-amount-prev">Amount</div>
+            </div>
+            <div class="items-body">
+                ${validItems.map((item, index) => `
+                    <div class="item-row">
+                        <div class="col-sno-prev">${index + 1}</div>
+                        <div class="col-desc-prev">${escapeHtml(item.description) || ''}</div>
+                        <div class="col-hsn-prev">${escapeHtml(item.hsn) || ''}</div>
+                        <div class="col-qty-prev">${item.quantity || ''}</div>
+                        <div class="col-rate-prev">${item.rate ? formatCurrency(parseFloat(item.rate)) : ''}</div>
+                        <div class="col-per-prev">${escapeHtml(item.unit) || ''}</div>
+                        <div class="col-amount-prev">${item.amount ? formatCurrency(item.amount) : ''}</div>
+                    </div>
+                `).join('')}
+                ${Array.from({length: Math.max(0, 5 - validItems.length)}).map(() => `
+                    <div class="item-row">
+                        <div class="col-sno-prev">&nbsp;</div>
+                        <div class="col-desc-prev">&nbsp;</div>
+                        <div class="col-hsn-prev">&nbsp;</div>
+                        <div class="col-qty-prev">&nbsp;</div>
+                        <div class="col-rate-prev">&nbsp;</div>
+                        <div class="col-per-prev">&nbsp;</div>
+                        <div class="col-amount-prev">&nbsp;</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="totals-section">
+            <div class="total-row grand-total">
+                <div class="total-label">Total (${formatNumber(totals.totalQuantity)} items)</div>
+                <div class="total-value">₹ ${formatCurrency(totals.total)}</div>
+            </div>
+        </div>
+        
+        <div class="amount-words">
+            <strong>Amount (in words):</strong><br>
+            ${numberToWords(totals.total)}
+        </div>
+        
+        <div class="po-note" style="padding: 8px; border: 1px solid #000; border-top: none; font-size: 10px; font-style: italic; color: #666;">
+            <strong>Note:</strong> Tax will be applied as per applicable rates by the vendor in their Proforma Invoice.
+        </div>
+        
+        ${data.terms ? `
+        <div style="padding: 12px; border: 1px solid #000; border-top: none; font-size: 11px; line-height: 1.5;">
+            <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px;">Terms & Conditions:</div>
+            <div style="white-space: pre-line;">${escapeHtml(data.terms)}</div>
+        </div>
+        ` : ''}
+        
+        ${data.notes ? `
+        <div style="padding: 12px; border: 1px solid #000; border-top: none; font-size: 11px; line-height: 1.5;">
+            <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px;">Additional Notes:</div>
+            <div>${escapeHtml(data.notes)}</div>
+        </div>
+        ` : ''}
+        
+        <div style="border: 1px solid #000; border-top: none; padding: 15px 12px; min-height: 100px;">
+            <div style="text-align: right;">
+                <div style="display: inline-block; text-align: left;">
+                    <div style="font-size: 12px; margin-bottom: 50px;">for <strong>${escapeHtml(data.buyerName)}</strong></div>
+                    <div style="border-top: 1px solid #000; padding-top: 5px; font-size: 11px; min-width: 200px;">
+                        Authorised Signatory
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="computer-generated">
+            This is a Computer Generated Purchase Order
+        </div>
+    `;
+}
+
+// ============================================
+// Purchase Order - PDF Generation
+// ============================================
+async function generatePoPDF() {
+    const { jsPDF } = window.jspdf;
+    
+    // Disable buttons during generation
+    elements.poGenerateBtn.disabled = true;
+    elements.poDownloadPDF.disabled = true;
+    const originalText = elements.poGenerateBtn.innerHTML;
+    elements.poGenerateBtn.innerHTML = '⏳ Generating PDF...';
+    
+    try {
+        const invoiceElement = elements.poInvoicePreview;
+        
+        // Wait a bit for DOM update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Create canvas from the invoice preview
+        const canvas = await html2canvas(invoiceElement, {
+            scale: 1.5,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            imageTimeout: 0,
+            onclone: function(clonedDoc) {
+                const clonedElement = clonedDoc.getElementById('poInvoicePreview');
+                if (clonedElement) {
+                    clonedElement.style.display = 'block';
+                }
+            }
+        });
+        
+        // Validate canvas dimensions
+        if (!canvas.width || !canvas.height) {
+            throw new Error('Failed to capture purchase order preview');
+        }
+        
+        // Use JPEG with compression for smaller file size
+        const imgData = canvas.toDataURL('image/jpeg', 0.85);
+        
+        // Create new PDF
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        
+        // Calculate scaling to fit A4 with margins
+        const margin = 10;
+        const maxWidth = pdfWidth - (margin * 2);
+        const maxHeight = pdfHeight - (margin * 2);
+        
+        const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+        const scaledWidth = imgWidth * ratio;
+        const scaledHeight = imgHeight * ratio;
+        const imgX = (pdfWidth - scaledWidth) / 2;
+        const imgY = margin;
+        
+        pdf.addImage(imgData, 'JPEG', imgX, imgY, scaledWidth, scaledHeight);
+        
+        // Generate filename
+        const poNumber = document.getElementById('poNumber').value || 'purchase_order';
+        const date = new Date().toISOString().split('T')[0];
+        const filename = `${poNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${date}.pdf`;
+        pdf.save(filename);
+        
+    } catch (error) {
+        console.error('PDF generation error:', error);
+        alert('Error generating PDF: ' + error.message + '\n\nTip: Try running a local server or open in a different browser.');
+    } finally {
+        elements.poGenerateBtn.innerHTML = originalText;
+        elements.poGenerateBtn.disabled = false;
+        elements.poDownloadPDF.disabled = false;
     }
 }

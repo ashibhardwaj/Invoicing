@@ -905,6 +905,23 @@ body {
     border-top: none;
 }
 
+/* Purchase Order Specific Styles */
+.terms-section,
+.notes-section {
+    padding: 12px;
+    border: 1px solid #000;
+    border-top: none;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.terms-section strong,
+.notes-section strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
 /* Footer */
 .app-footer {
     text-align: center;

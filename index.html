@@ -23,8 +23,8 @@
             <button class="tab-btn" data-tab="proforma-invoice">
                 📋 Proforma Invoice
             </button>
-            <button class="tab-btn" data-tab="purchase-order" disabled>
-                🛒 Purchase Order (Coming Soon)
+            <button class="tab-btn" data-tab="purchase-order">
+                🛒 Purchase Order
             </button>
         </nav>
 
@@ -511,13 +511,173 @@ Goods once sold will not be taken back.</textarea>
             </div>
             <!-- End Proforma Invoice Tab -->
 
-            <!-- Purchase Order Tab Content (Placeholder) -->
+            <!-- Purchase Order Tab Content -->
             <div class="tab-content" id="purchase-order">
             <section class="form-section">
-                <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
-                    <h2>🛒 Purchase Order</h2>
-                    <p style="margin-top: 1rem;">Coming Soon...</p>
-                </div>
+                <form id="purchaseOrderForm">
+                    <!-- Buyer Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">🏢</span>
+                            Buyer Details (Your Company)
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="poBuyerName">Company Name</label>
+                                <input type="text" id="poBuyerName" value="ACU Enterprises">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="poBuyerAddress">Address</label>
+                                <textarea id="poBuyerAddress" rows="2">Lt Sh Nihal Singh Mukdam Road, Near National Furniture, RIICO Industrial Area, Bhiwadi, Khairthal Tijara</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="poBuyerGSTIN">GSTIN/UIN</label>
+                                <input type="text" id="poBuyerGSTIN" value="08APVPK8585J1ZS">
+                            </div>
+                            <div class="form-group">
+                                <label for="poBuyerState">State Name & Code</label>
+                                <input type="text" id="poBuyerState" value="Rajasthan, Code: 08">
+                            </div>
+                            <div class="form-group">
+                                <label for="poBuyerEmail">Email</label>
+                                <input type="email" id="poBuyerEmail" value="acuenterprises1@gmail.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="poBuyerPhone">Phone</label>
+                                <input type="text" id="poBuyerPhone" value="+91 9811358269">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PO Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📋</span>
+                            Purchase Order Details
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="poNumber">PO Number</label>
+                                <input type="text" id="poNumber" placeholder="PO/2025-26/001">
+                            </div>
+                            <div class="form-group">
+                                <label for="poDate">PO Date</label>
+                                <input type="date" id="poDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="poDeliveryDate">Expected Delivery Date</label>
+                                <input type="date" id="poDeliveryDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="poPaymentTerms">Payment Terms</label>
+                                <input type="text" id="poPaymentTerms" placeholder="Net 30 Days">
+                            </div>
+                            <div class="form-group">
+                                <label for="poShippingMethod">Shipping Method</label>
+                                <input type="text" id="poShippingMethod" placeholder="BY ROAD">
+                            </div>
+                            <div class="form-group">
+                                <label for="poDeliveryAddress">Delivery Address</label>
+                                <input type="text" id="poDeliveryAddress" placeholder="Delivery Location">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vendor Details -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">🏭</span>
+                            Vendor/Supplier Details
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="poVendorName">Vendor Name</label>
+                                <input type="text" id="poVendorName" placeholder="Supplier Company Name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="poVendorAddress">Address</label>
+                                <textarea id="poVendorAddress" rows="2" placeholder="Full Address"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="poVendorGSTIN">GSTIN/UIN</label>
+                                <input type="text" id="poVendorGSTIN" placeholder="22AAAAA0000A1Z5">
+                            </div>
+                            <div class="form-group">
+                                <label for="poVendorState">State Name & Code</label>
+                                <input type="text" id="poVendorState" placeholder="State, Code: XX">
+                            </div>
+                            <div class="form-group">
+                                <label for="poVendorEmail">Email</label>
+                                <input type="email" id="poVendorEmail" placeholder="vendor@company.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="poVendorPhone">Phone</label>
+                                <input type="text" id="poVendorPhone" placeholder="+91 XXXXXXXXXX">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📝</span>
+                            Items to Purchase
+                        </h2>
+                        <div class="items-table-container">
+                            <table class="items-table" id="poItemsTable">
+                                <thead>
+                                    <tr>
+                                        <th class="col-sno">S.No</th>
+                                        <th class="col-desc">Description of Goods</th>
+                                        <th class="col-hsn">HSN/SAC</th>
+                                        <th class="col-qty">Quantity</th>
+                                        <th class="col-unit">Unit</th>
+                                        <th class="col-rate">Rate</th>
+                                        <th class="col-amount">Amount</th>
+                                        <th class="col-action"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="poItemsBody">
+                                    <!-- Items will be added here dynamically -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-add" id="poAddItemBtn">
+                                <span>+</span> Add Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Additional Terms -->
+                    <div class="form-group-container">
+                        <h2 class="section-title">
+                            <span class="section-icon">📌</span>
+                            Terms & Conditions
+                        </h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="poTerms">Terms & Conditions</label>
+                                <textarea id="poTerms" rows="4">1. Goods must be delivered as per the specified delivery date.
+2. Quality of goods must meet the agreed specifications.
+3. Payment will be made as per the agreed payment terms.
+4. Any damage during transit will be the supplier's responsibility.</textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="poNotes">Additional Notes</label>
+                                <textarea id="poNotes" rows="2" placeholder="Any additional information or special instructions"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-preview" id="poPreviewBtn">
+                            👁️ Preview Purchase Order
+                        </button>
+                        <button type="button" class="btn btn-generate" id="poGenerateBtn">
+                            📄 Generate PDF
+                        </button>
+                    </div>
+                </form>
             </section>
             </div>
             <!-- End Purchase Order Tab -->
@@ -569,6 +729,28 @@ Goods once sold will not be taken back.</textarea>
                     <div class="modal-footer">
                         <div class="download-options">
                             <button class="btn btn-generate" id="piDownloadPDF">
+                                📄 Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchase Order Preview Modal -->
+            <div class="modal-overlay" id="poPreviewModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Purchase Order Preview</h2>
+                        <button class="modal-close" id="poCloseModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="poInvoicePreview" class="invoice-preview">
+                            <!-- Purchase Order preview will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="download-options">
+                            <button class="btn btn-generate" id="poDownloadPDF">
                                 📄 Download PDF
                             </button>
                         </div>
